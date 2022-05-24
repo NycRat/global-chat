@@ -17,21 +17,24 @@ input {
   font-family: "Jost", sans-serif;
 }
 
-.app {
+#app {
   width: 100%;
   height: 100%;
 }
 
-.app-title {
+#app-title {
   text-align: center;
   font-size: calc(50px + 2vw);
 }
 
-.chat-box {
+#chat-box {
   margin: auto;
   text-align: left;
   width: calc(500px + 5vw);
   max-width: 80%;
+  height: 50%;
+
+  overflow-y: auto;
 
   p {
     margin: 5px;
@@ -42,7 +45,7 @@ input {
   border-radius: 10px;
 }
 
-.chat-input {
+#chat-input {
   margin: auto;
   width: calc(500px + 5vw);
   padding: 10px;

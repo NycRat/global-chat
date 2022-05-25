@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { serverGetRecent, serverPostMessage, serverWakeUp } from "./ApiUtils";
 
@@ -14,8 +14,8 @@ const getNow = () => {
 const App = () => {
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [curMessage, setCurMessage] = useState<string>("");
-  const [now, setNow] = useState(getNow());
-  const [serverUp, setServerUp] = useState(false);
+
+  const recentMessage = useRef<Message>({ text: "", time: getNow() });
 
   const updateChatScroll = () => {
     let chatBox = document.getElementById("chat-box");
@@ -25,34 +25,23 @@ const App = () => {
   };
 
   const updateMessages = async () => {
-    if (!serverUp) {
-      await serverWakeUp();
-      setServerUp(true);
-    }
     let recentMessages = [];
-    if (messages.length !== 0) {
-      recentMessages = await serverGetRecent(messages[messages.length - 1]);
-    } else {
-      recentMessages = await serverGetRecent({ time: now, text: "" });
-    }
-    if (recentMessages.length !== 0) {
-      setNow(getNow());
-    }
+    recentMessages = await serverGetRecent(recentMessage.current);
     if (recentMessages.length !== 0) {
       let updatedMessages = [...messages];
-      for (let msg of recentMessages) {
-        updatedMessages.push(msg);
+      for (let i = recentMessages.length - 1; i >= 0; i--) {
+        updatedMessages.push(recentMessages[i]);
       }
       setMessages(updatedMessages);
+      recentMessage.current = updatedMessages[updatedMessages.length - 1];
       updateChatScroll();
     }
   };
 
   useEffect(() => {
-    updateMessages();
     const interval = setInterval(updateMessages, 100);
     return () => clearInterval(interval);
-  }, [messages, serverUp]);
+  }, [messages]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -60,8 +49,12 @@ const App = () => {
       return;
     }
 
-    setNow(getNow());
-    serverPostMessage({ time: getNow(), text: curMessage });
+    recentMessage.current = { time: getNow(), text: curMessage };
+    serverPostMessage(recentMessage.current);
+
+    let newMessages = [...messages];
+    newMessages.push(recentMessage.current);
+    setMessages(newMessages);
     setCurMessage("");
   };
 

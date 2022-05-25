@@ -15,6 +15,7 @@ const App = () => {
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [curMessage, setCurMessage] = useState<string>("");
   const [now, setNow] = useState(getNow());
+  const [serverUp, setServerUp] = useState(false);
 
   const updateChatScroll = () => {
     let chatBox = document.getElementById("chat-box");
@@ -24,6 +25,10 @@ const App = () => {
   };
 
   const updateMessages = async () => {
+    if (!serverUp) {
+      await serverWakeUp();
+      setServerUp(true);
+    }
     let recentMessages = [];
     if (messages.length !== 0) {
       recentMessages = await serverGetRecent(messages[messages.length - 1]);
@@ -33,9 +38,11 @@ const App = () => {
     if (recentMessages.length !== 0) {
       setNow(getNow());
     }
+    let updatedMessages = [...messages];
     for (let msg of recentMessages) {
-      messages.push(msg);
+      updatedMessages.push(msg);
     }
+    setMessages(updatedMessages);
     updateChatScroll();
   };
 
@@ -43,7 +50,7 @@ const App = () => {
     updateMessages();
     const interval = setInterval(updateMessages, 100);
     return () => clearInterval(interval);
-  }, [messages]);
+  }, [messages, serverUp]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();

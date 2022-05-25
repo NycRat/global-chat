@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Message } from "./App";
 
-const serverURL = "http://global-chat-backend.herokuapp.com";
+const serverURL = "https://global-chat-backend.herokuapp.com";
 
 export const serverPostMessage = async (message: Message) => {
   try {

@@ -38,12 +38,14 @@ const App = () => {
     if (recentMessages.length !== 0) {
       setNow(getNow());
     }
-    let updatedMessages = [...messages];
-    for (let msg of recentMessages) {
-      updatedMessages.push(msg);
+    if (recentMessages.length !== 0) {
+      let updatedMessages = [...messages];
+      for (let msg of recentMessages) {
+        updatedMessages.push(msg);
+      }
+      setMessages(updatedMessages);
+      updateChatScroll();
     }
-    setMessages(updatedMessages);
-    updateChatScroll();
   };
 
   useEffect(() => {

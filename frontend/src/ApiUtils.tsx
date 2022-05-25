@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Message } from "./App";
 
-const serverURL = "http://localhost:5001";
+const serverURL = "http://global-chat-backend.herokuapp.com/";
 
 export const serverPostMessage = async (message: Message) => {
   try {
@@ -23,4 +23,14 @@ export const serverGetRecent = async (curRecent: Message) => {
     console.log("server error: " + ex);
   }
   return recentMessages;
+};
+
+export const serverWakeUp = async () => {
+  // because free hosting :(
+  try {
+    await axios.get(serverURL);
+  } catch (ex) {
+    console.log("server error: " + ex);
+  }
+  return true;
 };

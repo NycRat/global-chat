@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { serverGetRecent, serverPostMessage } from "./ApiUtils";
+import { serverGetRecent, serverPostMessage, serverWakeUp } from "./ApiUtils";
 
 export interface Message {
   time: number;
@@ -23,22 +23,25 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      let recentMessages;
-      if (messages.length !== 0) {
-        recentMessages = await serverGetRecent(messages[messages.length - 1]);
-      } else {
-        recentMessages = await serverGetRecent({ time: now, text: "" });
-      }
-      if (recentMessages.length !== 0) {
-        setNow(getNow());
-      }
-      for (let msg of recentMessages) {
-        messages.push(msg);
-      }
-    }, 100);
+  const updateMessages = async () => {
+    let recentMessages = [];
+    if (messages.length !== 0) {
+      recentMessages = await serverGetRecent(messages[messages.length - 1]);
+    } else {
+      recentMessages = await serverGetRecent({ time: now, text: "" });
+    }
+    if (recentMessages.length !== 0) {
+      setNow(getNow());
+    }
+    for (let msg of recentMessages) {
+      messages.push(msg);
+    }
     updateChatScroll();
+  };
+
+  useEffect(() => {
+    updateMessages();
+    const interval = setInterval(updateMessages, 100);
     return () => clearInterval(interval);
   }, [messages]);
 
@@ -47,14 +50,10 @@ const App = () => {
     if (curMessage.length === 0) {
       return;
     }
-    let newMessages = [...messages];
-    newMessages.push({ text: curMessage, time: new Date().getTime() });
-    setMessages(newMessages);
 
     setNow(getNow());
     serverPostMessage({ time: getNow(), text: curMessage });
     setCurMessage("");
-    updateChatScroll();
   };
 
   const handleMessageChange = (event: ChangeEvent<HTMLInputElement>) => {
